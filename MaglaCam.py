@@ -20,7 +20,7 @@ import array, fcntl
 from cStringIO import StringIO
 
 
-# set up the colors
+# Set up some colors
 BLACK = (  0,   0,   0)
 WHITE = (255, 255, 255)
 RED   = (255,   0,   0)
@@ -68,10 +68,25 @@ SSD1289_GET_KEYS = _IOR(ord('K'), 1, 4)
 buf = array.array('h',[0])
         
  
-#Set the framebuffer device to be the TFT
+# Set the framebuffer device to be the TFT & set the touchscreen dev
 os.environ["SDL_FBDEV"] = "/dev/fb1"
 os.environ["SDL_MOUSEDRV"] = "TSLIB"
 os.environ["SDL_MOUSEDEV"] = "/dev/input/event0"
+
+
+# Define some values
+ISO = 0
+SS = 0
+WB = 1
+METERING = 0
+tmpISO = "auto"
+tmpSS = 0
+tmpSSstring = "auto"
+tmpWB = "auto"
+tmpMETERING = "auto"
+ShutterSpeed = 0
+
+
 
 def buttonCheck(sec):
     rightnow = datetime.datetime.now().second+sec
@@ -83,9 +98,7 @@ def buttonCheck(sec):
          
          if keybits:
 #             print 'buf {:0>8b}'.format(keybits)
-             # there's probably a better way to do this ...
              buttons = (keybits & 0b10000 > 0, keybits & 0b01000 > 0, keybits & 0b00100 > 0, keybits & 0b00010 > 0, keybits & 0b00001 > 0)
-#             print buttons
              if buttons == (1,0,0,0,0):
                  return 1
                  break
@@ -130,7 +143,6 @@ def delayFor(sec):
 #             print 'buf {:0>8b}'.format(keybits)
              # there's probably a better way to do this ...
              buttons = (keybits & 0b10000 > 0, keybits & 0b01000 > 0, keybits & 0b00100 > 0, keybits & 0b00010 > 0, keybits & 0b00001 > 0)
-#             print buttons
              if buttons == (0,1,0,0,0):
                  ISO+=1
                  break
@@ -161,18 +173,6 @@ def delayFor(sec):
 #                 print ("%s x %s" % pygame.mouse.get_pos())
          pygame.display.update()
          
-
-ISO = 0
-SS = 0
-WB = 1
-METERING = 0
-tmpISO = "auto"
-tmpSS = 0
-tmpSSstring = "auto"
-tmpWB = "auto"
-tmpMETERING = "auto"
-ShutterSpeed = 0
-
 
 
 def drawMainMenu():
@@ -341,8 +341,10 @@ def captureImage():
     global tmpMETERING
     global ImgNumber
     global ShutterSpeed
-    pathname = "/mnt/cray_root/timelapse/"
-#    pathname = "/mnt/usb/"
+    if (os.path.isdir("/mnt/usb/DCIM")):
+       pathname = "/mnt/usb/DCIM"
+    else:
+       pathname = "/mnt/cray_root/timelapse/"
     filename = pathname+"IMG"+str(ImgNumber).zfill(5)+"_"+datetime.datetime.fromtimestamp(time.time()).strftime('%d%m%y%H%M%S')+".JPG"
     options = "-n"
     if ShutterSpeed != 0:
@@ -352,14 +354,10 @@ def captureImage():
     if tmpMETERING != "auto":
        options += " -mm "+tmpMETERING
     options += " -awb "+tmpWB
-
-    print "Options: "+options
-
+#    print "Options: "+options
     options += " -o "+filename
     x="raspistill "+options
-
-    print "Filename: "+filename
-
+#    print "Filename: "+filename
     os.system(x)
     pic = pygame.image.load(filename)
     pic = pygame.transform.scale(pic, (320, 240))
@@ -370,24 +368,19 @@ def captureImage():
 
  
 def displayText(text, size, line, color, clearScreen):
- 
-    """Used to display text to the screen. displayText is only configured to display
-    two lines on the TFT. Only clear screen when writing the first line"""
     if clearScreen:
-        screen.fill((0, 0, 0))
- 
+        screen.fill((0, 0, 0)) 
     font = pygame.font.Font(None, size)
     text = font.render(text, 0, color)
     textRotated = pygame.transform.rotate(text, -90)
     textpos = textRotated.get_rect()
     textpos.centery = 80  
     if line == 1:
-         textpos.centerx = 90
-         screen.blit(textRotated,textpos)
+        textpos.centerx = 90
+        screen.blit(textRotated,textpos)
     elif line == 2:
         textpos.centerx = 40
         screen.blit(textRotated,textpos)
-        
     pygame.display.flip()
  
  
