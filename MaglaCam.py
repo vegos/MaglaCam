@@ -95,6 +95,21 @@ def buttonCheck(sec):
              if buttons == (0,0,0,0,1):
                  return 2                 
                  break
+         for event in pygame.event.get():
+             if event.type == pygame.MOUSEMOTION:
+                 mouseX,mouseY = pygame.mouse.get_pos()
+                 if mouseX>=240 and mouseX<=320 and mouseY >=150 and mouseY <= 175:
+                     return 3
+                     break
+                 if mouseX>=240 and mouseX<=320 and mouseY >=190 and mouseY <= 215:
+                     return 2
+                     breaek
+                 if mouseX>=240 and mouseX<=320 and mouseY >=0 and mouseY <= 30:
+                     return 1
+                     break
+#                 print ("%s x %s" % pygame.mouse.get_pos())
+         pygame.display.update()
+
     return 0
 
 
@@ -135,32 +150,27 @@ def delayFor(sec):
                  mouseX,mouseY = pygame.mouse.get_pos()
                  if mouseX>=190 and mouseX<=240 and mouseY >=65 and mouseY <= 95:
                      ISO+=1
-                     time.sleep(0.3)
                  if mouseX>=190 and mouseX<=240 and mouseY >=110 and mouseY <= 135:
                      SS+=1
-                     time.sleep(0.3)
                  if mouseX>=190 and mouseX<=240 and mouseY >=150 and mouseY <= 175:
                      METERING+=1
-                     time.sleep(0.3)
                  if mouseX>=190 and mouseX<=240 and mouseY >=190 and mouseY <= 215:
                      WB+=1
-                     time.sleep(0.3)
                  if mouseX>=240 and mouseX<=320 and mouseY >=0 and mouseY <= 30:
                      Exit = True
-                     time.sleep(0.3)
 #                 print ("%s x %s" % pygame.mouse.get_pos())
          pygame.display.update()
          
 
-ISO = 1
+ISO = 0
 SS = 0
 WB = 1
-METERING = 4
-tmpISO = "100"
+METERING = 0
+tmpISO = "auto"
 tmpSS = 0
 tmpSSstring = "auto"
 tmpWB = "auto"
-tmpMETERING = "matrix"
+tmpMETERING = "auto"
 ShutterSpeed = 0
 
 
@@ -200,10 +210,10 @@ def drawOptions():
    elif ISO == 4:
       tmpISO = "800"
    elif ISO == 5:
-      tmpISO = "off"
+      tmpISO = "auto"
    else:
-      tmpISO = "100"
-      ISO = 1
+      tmpISO = "auto"
+      ISO = 0
       
    if WB == 1:
       tmpWB = "auto"
@@ -238,10 +248,11 @@ def drawOptions():
    elif METERING == 4:
       tmpMETERING = "matrix"
    elif METERING == 5:
-      tmpMETERING = "off"
+      tmpMETERING = "auto"
+      METERING = 0
    else:
-      tmpMETERING = "average"
-      METERING = 1
+      tmpMETERING = "auto"
+      METERING = 0
       
    if SS == 1:
       tmpSS = 1000
@@ -336,13 +347,19 @@ def captureImage():
     options = "-n"
     if ShutterSpeed != 0:
        options += " -ss "+str(ShutterSpeed)
-    if tmpISO != 5:
+    if tmpISO != "auto":
        options += " -ISO "+tmpISO
-    if tmpMETERING != "off":
+    if tmpMETERING != "auto":
        options += " -mm "+tmpMETERING
     options += " -awb "+tmpWB
+
+    print "Options: "+options
+
     options += " -o "+filename
     x="raspistill "+options
+
+    print "Filename: "+filename
+
     os.system(x)
     pic = pygame.image.load(filename)
     pic = pygame.transform.scale(pic, (320, 240))
